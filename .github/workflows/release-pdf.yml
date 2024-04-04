@@ -1,42 +1,36 @@
-name: Release Compiled PDF
-
-on:
-  push:
-    branches:
-      - main 
-
+name: Compile and Release LaTeX Document
+on: [push]
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
+    
+    - name: Compile LaTeX document
+      uses: xu-cheng/latex-action@v2
+      with:
+        root_file: Capstone_Project.tex
 
-      - name: Compile LaTeX document
-        uses: xu-cheng/latex-action@v2
-        with:
-          root_file: Capstone_Project.tex
+    - name: Set release and tag names
+      run: echo "RELEASE_TAG=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_ENV
 
-      - name: Set release and tag names
-        id: vars
-        run: |
-          echo "::set-output name=date::$(date +'%Y-%m-%d_%H-%M-%S')"
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.vars.outputs.date }}
-          release_name: Release ${{ steps.vars.outputs.date }}
-          draft: false
-          prerelease: false
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Release ${{ env.RELEASE_TAG }}
+        draft: false
+        prerelease: false
 
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Capstone_Economics_Mirabent_Pericot.pdf
-          asset_name: Capstone_Economics_Mirabent_Pericot.pdf
-          asset_content_type: application/pdf
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./Capstone_Project.pdf
+        asset_name: Capstone_Project.pdf
+        asset_content_type: application/pdf
